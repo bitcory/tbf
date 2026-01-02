@@ -50,6 +50,7 @@ function cacheElements() {
         urlInput: document.getElementById('urlInput'),
         loadUrlBtn: document.getElementById('loadUrlBtn'),
         extractCurrentBtn: document.getElementById('extractCurrentBtn'),
+        extractEndBtn: document.getElementById('extractEndBtn'),
         extractAllBtn: document.getElementById('extractAllBtn'),
         cancelExtractBtn: document.getElementById('cancelExtractBtn'),
         selectAllBtn: document.getElementById('selectAllBtn'),
@@ -172,6 +173,7 @@ function setupControlButtons() {
 
     // 추출 버튼
     elements.extractCurrentBtn.addEventListener('click', extractCurrentFrame);
+    elements.extractEndBtn.addEventListener('click', extractEndFrame);
     elements.extractAllBtn.addEventListener('click', extractFrames);
     elements.cancelExtractBtn.addEventListener('click', cancelExtraction);
 }
@@ -346,6 +348,51 @@ function extractCurrentFrame() {
         addFrameToGallery(frameData);
         showToast('현재 프레임이 추출되었습니다.');
     }, `image/${currentFormat}`, quality);
+}
+
+// 엔드프레임 추출 (마지막 프레임)
+function extractEndFrame() {
+    if (!video) {
+        showToast('먼저 비디오를 로드해주세요.');
+        return;
+    }
+
+    // 마지막 프레임으로 이동 (약간 앞으로 이동해서 마지막 프레임 확보)
+    const endTime = Math.max(0, video.duration - 0.001);
+
+    const captureFrame = () => {
+        const scaledCanvas = document.createElement('canvas');
+        const scaledCtx = scaledCanvas.getContext('2d');
+        scaledCanvas.width = video.videoWidth * currentScale;
+        scaledCanvas.height = video.videoHeight * currentScale;
+
+        scaledCtx.imageSmoothingEnabled = true;
+        scaledCtx.imageSmoothingQuality = 'high';
+        scaledCtx.drawImage(video, 0, 0, scaledCanvas.width, scaledCanvas.height);
+
+        const quality = currentFormat === 'jpeg' ? 0.95 : 1.0;
+        scaledCanvas.toBlob((blob) => {
+            const frameData = {
+                id: Date.now(),
+                blob: blob,
+                time: video.currentTime,
+                url: URL.createObjectURL(blob)
+            };
+
+            extractedFrames.push(frameData);
+            addFrameToGallery(frameData);
+            showToast('엔드프레임이 추출되었습니다.');
+        }, `image/${currentFormat}`, quality);
+    };
+
+    // 이미 마지막 위치에 있으면 바로 추출
+    if (Math.abs(video.currentTime - endTime) < 0.01) {
+        captureFrame();
+    } else {
+        // 마지막 위치로 이동 후 추출
+        video.addEventListener('seeked', captureFrame, { once: true });
+        video.currentTime = endTime;
+    }
 }
 
 // 전체 프레임 추출
