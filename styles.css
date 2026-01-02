@@ -525,11 +525,56 @@ body::before {
 /* Action Buttons */
 .action-buttons {
     display: flex;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .action-buttons .btn:not(.btn-ghost) {
     flex: 1;
+    padding: 0.5rem 0.4rem;
+    font-size: 0.8rem;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+/* Action Button Colors */
+#extractCurrentBtn {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+}
+#extractCurrentBtn:hover {
+    background: #2563eb;
+    border-color: #2563eb;
+}
+
+#extractEndBtn {
+    background: #8b5cf6;
+    border-color: #8b5cf6;
+    color: white;
+}
+#extractEndBtn:hover {
+    background: #7c3aed;
+    border-color: #7c3aed;
+}
+
+#extractAllBtn {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: white;
+}
+#extractAllBtn:hover {
+    background: #d97706;
+    border-color: #d97706;
+}
+
+#resetBtn {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+#resetBtn:hover {
+    background: #059669;
+    border-color: #059669;
 }
 
 /* Progress */
