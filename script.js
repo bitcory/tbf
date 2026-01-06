@@ -421,14 +421,30 @@ async function extractFrames() {
 
     document.getElementById('totalFrames').textContent = totalFrames;
 
-    for (let time = 0; time < duration; time += currentInterval) {
-        if (!isExtracting) break;
+    // 부동소수점 오차 보정을 위한 작은 값
+    const epsilon = 0.001;
 
-        await seekAndExtract(time);
+    for (let time = 0; time <= duration + epsilon; time += currentInterval) {
+        if (!isExtracting) break;
+        
+        // 시간이 duration을 초과하면 duration으로 고정 (마지막 프레임)
+        let extractTime = time;
+        if (extractTime > duration) {
+            // 이미 마지막 프레임 근처를 추출했다면 스킵
+            if (time - currentInterval > duration - currentInterval / 2) {
+                 break;
+            }
+            extractTime = duration;
+        }
+
+        await seekAndExtract(extractTime);
         extractedCount++;
 
         updateProgress(extractedCount, totalFrames);
         document.getElementById('currentFrame').textContent = extractedCount;
+        
+        // duration에 도달했으면 종료
+        if (extractTime >= duration) break;
     }
 
     isExtracting = false;
