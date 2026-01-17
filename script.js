@@ -24,7 +24,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // 비디오 및 캔버스 초기화
     video = elements.videoPlayer;
     canvas = elements.frameCanvas;
-    ctx = canvas.getContext('2d');
+    ctx = canvas.getContext('2d', {
+        willReadFrequently: true,
+        alpha: false
+    });
 
     // 이벤트 리스너 설정
     setupEventListeners();
@@ -308,8 +311,8 @@ function updateVideoInfo() {
 
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    // 원본 화질 유지를 위해 스무딩 비활성화
+    ctx.imageSmoothingEnabled = false;
 }
 
 // 예상 프레임 수 업데이트
@@ -327,15 +330,24 @@ function extractCurrentFrame() {
     }
 
     const scaledCanvas = document.createElement('canvas');
-    const scaledCtx = scaledCanvas.getContext('2d');
+    const scaledCtx = scaledCanvas.getContext('2d', {
+        willReadFrequently: true,
+        alpha: false
+    });
     scaledCanvas.width = video.videoWidth * currentScale;
     scaledCanvas.height = video.videoHeight * currentScale;
 
-    scaledCtx.imageSmoothingEnabled = true;
-    scaledCtx.imageSmoothingQuality = 'high';
+    // 원본 화질 유지를 위해 스케일링 시에만 스무딩 적용
+    if (currentScale > 1) {
+        scaledCtx.imageSmoothingEnabled = true;
+        scaledCtx.imageSmoothingQuality = 'high';
+    } else {
+        scaledCtx.imageSmoothingEnabled = false;
+    }
     scaledCtx.drawImage(video, 0, 0, scaledCanvas.width, scaledCanvas.height);
 
-    const quality = currentFormat === 'jpeg' ? 0.95 : 1.0;
+    // 최고 품질 설정 (PNG는 무손실, JPEG/WebP는 최고 품질)
+    const quality = 1.0;
     scaledCanvas.toBlob((blob) => {
         const frameData = {
             id: Date.now(),
@@ -362,15 +374,22 @@ function extractEndFrame() {
 
     const captureFrame = () => {
         const scaledCanvas = document.createElement('canvas');
-        const scaledCtx = scaledCanvas.getContext('2d');
+        const scaledCtx = scaledCanvas.getContext('2d', {
+            willReadFrequently: true,
+            alpha: false
+        });
         scaledCanvas.width = video.videoWidth * currentScale;
         scaledCanvas.height = video.videoHeight * currentScale;
 
-        scaledCtx.imageSmoothingEnabled = true;
-        scaledCtx.imageSmoothingQuality = 'high';
+        if (currentScale > 1) {
+            scaledCtx.imageSmoothingEnabled = true;
+            scaledCtx.imageSmoothingQuality = 'high';
+        } else {
+            scaledCtx.imageSmoothingEnabled = false;
+        }
         scaledCtx.drawImage(video, 0, 0, scaledCanvas.width, scaledCanvas.height);
 
-        const quality = currentFormat === 'jpeg' ? 0.95 : 1.0;
+        const quality = 1.0;
         scaledCanvas.toBlob((blob) => {
             const frameData = {
                 id: Date.now(),
@@ -461,15 +480,24 @@ function seekAndExtract(time) {
         video.currentTime = time;
         video.onseeked = () => {
             const scaledCanvas = document.createElement('canvas');
-            const scaledCtx = scaledCanvas.getContext('2d');
+            const scaledCtx = scaledCanvas.getContext('2d', {
+                willReadFrequently: true,
+                alpha: false
+            });
             scaledCanvas.width = video.videoWidth * currentScale;
             scaledCanvas.height = video.videoHeight * currentScale;
 
-            scaledCtx.imageSmoothingEnabled = true;
-            scaledCtx.imageSmoothingQuality = 'high';
+            // 원본 화질 유지를 위해 스케일링 시에만 스무딩 적용
+            if (currentScale > 1) {
+                scaledCtx.imageSmoothingEnabled = true;
+                scaledCtx.imageSmoothingQuality = 'high';
+            } else {
+                scaledCtx.imageSmoothingEnabled = false;
+            }
             scaledCtx.drawImage(video, 0, 0, scaledCanvas.width, scaledCanvas.height);
 
-            const quality = currentFormat === 'jpeg' ? 0.95 : 1.0;
+            // 최고 품질 설정
+            const quality = 1.0;
             scaledCanvas.toBlob((blob) => {
                 const frameData = {
                     id: Date.now() + Math.random(),
